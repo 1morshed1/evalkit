@@ -1,0 +1,95 @@
+suite_name: "Support Agent — reliability"
+
+# Agent suites score recorded execution traces, so there is nothing live to
+# call. The trace lives inline on each case; no judge or API key is needed.
+target:
+  type: agent
+
+# judge is unused for the deterministic agent metrics below, but a config is
+# still required. (Set expected_result.expected_output on a case to have the
+# judge rule on task completion instead of a substring check.)
+judge:
+  provider: ollama
+  model: llama3.2
+
+test_cases:
+  # Clean run: right tool, right answer, minimal steps.
+  - id: "refund-lookup"
+    question: "How many days do I have to return a defective product?"
+    tags: ["support", "happy-path"]
+    expected_result:
+      success_contains: "90"
+      expected_tool_calls:
+        - {name: "search_kb"}
+      optimal_step_count: 2
+    agent_trace:
+      format: openai
+      messages:
+        - {role: user, content: "How many days do I have to return a defective product?"}
+        - role: assistant
+          content: null
+          cost_usd: 0.0009
+          tool_calls:
+            - {id: call_1, type: function, function: {name: search_kb, arguments: '{"query": "return window defective"}'}}
+        - {role: tool, tool_call_id: call_1, content: "Defective products: 90-day return window."}
+        - {role: assistant, content: "You have 90 days to return a defective product.", cost_usd: 0.0011}
+
+  # Recovers from a tool error by retrying the same tool.
+  - id: "order-status-retry"
+    question: "What's the status of order 5591?"
+    tags: ["support", "error-recovery"]
+    expected_result:
+      success_contains: "Tuesday"
+      expected_tool_calls:
+        - {name: "get_order", arguments: {order_id: "5591"}}
+      optimal_step_count: 2
+    agent_trace:
+      format: openai
+      messages:
+        - {role: user, content: "What's the status of order 5591?"}
+        - role: assistant
+          content: null
+          cost_usd: 0.0008
+          tool_calls:
+            - {id: call_1, type: function, function: {name: get_order, arguments: '{"order_id": "5591"}'}}
+        - {role: tool, tool_call_id: call_1, content: "Error: upstream timeout"}
+        - role: assistant
+          content: null
+          cost_usd: 0.0008
+          tool_calls:
+            - {id: call_2, type: function, function: {name: get_order, arguments: '{"order_id": "5591"}'}}
+        - {role: tool, tool_call_id: call_2, content: "Order 5591: shipped, arriving Tuesday."}
+        - {role: assistant, content: "Order 5591 has shipped and arrives Tuesday.", cost_usd: 0.0012}
+
+  # Fails: wrong tool, extra steps, wrong answer.
+  - id: "pricing-wrong"
+    question: "How much is the enterprise plan?"
+    tags: ["sales", "failure"]
+    expected_result:
+      success_contains: "$499"
+      expected_tool_calls:
+        - {name: "search_kb", arguments: {query: "enterprise pricing"}}
+      optimal_step_count: 2
+    agent_trace:
+      format: openai
+      messages:
+        - {role: user, content: "How much is the enterprise plan?"}
+        - role: assistant
+          content: null
+          cost_usd: 0.001
+          tool_calls:
+            - {id: call_1, type: function, function: {name: web_search, arguments: '{"q": "enterprise plan"}'}}
+        - {role: tool, tool_call_id: call_1, content: "No results."}
+        - role: assistant
+          content: null
+          cost_usd: 0.001
+          tool_calls:
+            - {id: call_2, type: function, function: {name: web_search, arguments: '{"q": "pricing"}'}}
+        - {role: tool, tool_call_id: call_2, content: "No results."}
+        - {role: assistant, content: "I'm not sure of the price.", cost_usd: 0.001}
+
+thresholds:
+  agent_task_completion: 0.80
+  agent_tool_recall: 0.80
+  agent_error_recovery: 0.90
+  agent_cost_usd: 0.005      # ceiling: per-task cost must stay under half a cent

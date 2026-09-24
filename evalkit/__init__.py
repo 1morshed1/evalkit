@@ -6,5 +6,6 @@ __version__ = "0.1.0"
 
 from evalkit.config import load_suite
 from evalkit.runner import run_suite
+from evalkit.schemas import AgentTrace
 
-__all__ = ["__version__", "load_suite", "run_suite"]
+__all__ = ["__version__", "load_suite", "run_suite", "AgentTrace"]

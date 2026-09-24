@@ -56,7 +56,7 @@ def _fmt(metric: str, value: float | None) -> str:
         return "—"
     if metric.startswith("avg_latency"):
         return f"{value:,.0f}"
-    if metric.startswith("avg_cost"):
+    if "cost" in metric:
         return f"${value:.6f}"
     return f"{value:.3f}"
 
