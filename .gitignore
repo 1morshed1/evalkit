@@ -21,6 +21,8 @@ comparison*.html
 
 # ...but keep the committed case-study artifacts
 !examples/
+!examples/*.json
+!examples/*.html
 
 # Env
 .env

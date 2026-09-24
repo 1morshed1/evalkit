@@ -95,7 +95,7 @@ th:first-child,td:first-child{text-align:left}
 .up{color:#4ade80}.down{color:#f87171}
 </style></head><body><div class="wrap"><h1>Baseline vs Candidate</h1>
 <table><thead><tr><th>Metric</th><th>Baseline</th><th>Candidate</th><th>Change</th></tr></thead><tbody>
-{rows}
+__ROWS__
 </tbody></table></div></body></html>"""
 
 
@@ -114,4 +114,4 @@ def render_comparison_html(rows: list[dict[str, Any]], path: str | Path) -> None
             f"<td>{_fmt(r['metric'], r['candidate'])}</td>"
             f"<td class='{cls}'>{change}</td></tr>"
         )
-    Path(path).write_text(_HTML.format(rows="\n".join(lines)))
+    Path(path).write_text(_HTML.replace("__ROWS__", "\n".join(lines)))

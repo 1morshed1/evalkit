@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from evalkit.report.compare import compare_results, regressions
+from evalkit.report.compare import (
+    compare_results,
+    regressions,
+    render_comparison_html,
+)
 
 
 def _result(summary):
@@ -49,3 +53,16 @@ def test_flat_is_not_regression():
     rows = compare_results(_result({"relevance": 0.9}), _result({"relevance": 0.9}))
     assert rows[0]["direction"] == "flat"
     assert regressions(rows) == []
+
+
+def test_render_comparison_html(tmp_path):
+    rows = compare_results(
+        _result({"faithfulness": 0.8, "avg_latency_ms": 1000}),
+        _result({"faithfulness": 0.9, "avg_latency_ms": 1200}),
+    )
+    out = tmp_path / "cmp.html"
+    render_comparison_html(rows, out)
+    html = out.read_text()
+    assert "faithfulness" in html
+    assert "font-family" in html  # CSS survived (regression guard for brace bug)
+    assert "__ROWS__" not in html
