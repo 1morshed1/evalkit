@@ -1,0 +1,53 @@
+suite_name: "Customer Support RAG - demo (baseline)"
+
+target:
+  type: python
+  import: "demo.rag:answer_weak"      # candidate; use demo.rag:answer_weak for the baseline
+
+judge:
+  provider: ollama
+  model: "llama3.2"
+  concurrency: 4
+
+test_cases:
+  - id: "refund-policy-basic"
+    question: "What is your refund policy?"
+    expected_answer: "Full refund within 30 days of purchase with receipt."
+    relevant_doc_ids: ["doc-policy-returns-v3"]
+    tags: ["policy", "refund", "high-priority"]
+
+  - id: "refund-policy-edge"
+    question: "Can I return a defective product after 45 days?"
+    expected_answer: "Defective products can be returned within 90 days under the warranty policy."
+    relevant_doc_ids: ["doc-policy-warranty-v2"]
+    tags: ["policy", "warranty", "edge-case"]
+
+  - id: "pricing-question"
+    question: "How much does the enterprise plan cost?"
+    expected_answer: "The enterprise plan starts at $499/month with custom pricing for large teams."
+    relevant_doc_ids: ["doc-pricing-2024"]
+    tags: ["pricing", "sales"]
+
+  - id: "shipping-time"
+    question: "How long does standard shipping take?"
+    expected_answer: "Standard shipping takes 3 to 5 business days."
+    relevant_doc_ids: ["doc-shipping-1"]
+    tags: ["shipping"]
+
+  - id: "support-hours"
+    question: "When is customer support available?"
+    expected_answer: "Monday to Friday, 9am to 6pm, via email and live chat."
+    relevant_doc_ids: ["doc-support-hours"]
+    tags: ["support"]
+
+  - id: "refund-and-returns"
+    question: "What is your policy on refunds and defective returns?"
+    expected_answer: "Full refunds within 30 days; defective items within 90 days under warranty."
+    relevant_doc_ids: ["doc-policy-returns-v3", "doc-policy-warranty-v2"]
+    tags: ["policy", "multi-doc"]
+
+thresholds:
+  retrieval_recall_at_5: 0.80
+  faithfulness: 0.85
+  relevance: 0.70
+  hallucination_rate: 0.15

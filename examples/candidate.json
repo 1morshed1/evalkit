@@ -1,0 +1,442 @@
+{
+  "evalkit_version": "0.1.0",
+  "suite_name": "Customer Support RAG - demo",
+  "run_id": "2026-09-24T17:42:09Z",
+  "judge": {
+    "provider": "ollama",
+    "model": "llama3.2"
+  },
+  "summary": {
+    "retrieval_recall_at_1": 0.9167,
+    "retrieval_precision_at_1": 1.0,
+    "retrieval_recall_at_3": 1.0,
+    "retrieval_precision_at_3": 1.0,
+    "retrieval_recall_at_5": 1.0,
+    "retrieval_precision_at_5": 1.0,
+    "retrieval_recall_at_10": 1.0,
+    "retrieval_precision_at_10": 1.0,
+    "retrieval_mrr": 1.0,
+    "retrieval_hit_rate": 1.0,
+    "retrieval_ndcg_at_5": 1.0,
+    "relevance": 0.75,
+    "faithfulness": 1.0,
+    "hallucination_rate": 0.0,
+    "avg_latency_ms": 0.05
+  },
+  "thresholds": {
+    "retrieval_recall_at_5": 0.8,
+    "faithfulness": 0.85,
+    "relevance": 0.7,
+    "hallucination_rate": 0.15
+  },
+  "gate": {
+    "passed": true,
+    "violations": []
+  },
+  "cases": [
+    {
+      "id": "refund-policy-basic",
+      "tags": [
+        "policy",
+        "refund",
+        "high-priority"
+      ],
+      "prediction": {
+        "answer": "You can get a full refund within 30 days of purchase, and a receipt is required.",
+        "contexts": [
+          "Customers may request a full refund within 30 days of purchase. A valid receipt is required for all returns."
+        ],
+        "doc_ids": [
+          "doc-policy-returns-v3"
+        ],
+        "latency_ms": 0.1596710008016089,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 1.0,
+          "raw": "FULLY"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 2,
+          "supported_claims": 2,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    },
+    {
+      "id": "refund-policy-edge",
+      "tags": [
+        "policy",
+        "warranty",
+        "edge-case"
+      ],
+      "prediction": {
+        "answer": "Defective products can be returned within 90 days under the warranty policy.",
+        "contexts": [
+          "Defective or damaged products are covered by the warranty and can be returned within 90 days of purchase for a replacement or refund."
+        ],
+        "doc_ids": [
+          "doc-policy-warranty-v2"
+        ],
+        "latency_ms": 0.03475999983493239,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 0.0,
+          "raw": "NONE"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 3,
+          "supported_claims": 3,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    },
+    {
+      "id": "pricing-question",
+      "tags": [
+        "pricing",
+        "sales"
+      ],
+      "prediction": {
+        "answer": "The enterprise plan starts at $499 per month, with custom pricing for large teams.",
+        "contexts": [
+          "The enterprise plan starts at $499 per month. Custom pricing is available for large teams with more than 100 seats."
+        ],
+        "doc_ids": [
+          "doc-pricing-2024"
+        ],
+        "latency_ms": 0.03911100066034123,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 1.0,
+          "raw": "FULLY"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 2,
+          "supported_claims": 2,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    },
+    {
+      "id": "shipping-time",
+      "tags": [
+        "shipping"
+      ],
+      "prediction": {
+        "answer": "Standard shipping takes 3 to 5 business days; express shipping arrives in 1 business day.",
+        "contexts": [
+          "Standard shipping takes 3 to 5 business days. Express shipping delivers within 1 business day for an extra fee."
+        ],
+        "doc_ids": [
+          "doc-shipping-1"
+        ],
+        "latency_ms": 0.023621001673745923,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 0.5,
+          "raw": "PARTIAL"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 2,
+          "supported_claims": 2,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    },
+    {
+      "id": "support-hours",
+      "tags": [
+        "support"
+      ],
+      "prediction": {
+        "answer": "Support is available Monday to Friday, 9am to 6pm, via email and live chat.",
+        "contexts": [
+          "Customer support is available Monday to Friday, 9am to 6pm, via email and live chat."
+        ],
+        "doc_ids": [
+          "doc-support-hours"
+        ],
+        "latency_ms": 0.010260000635753386,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 1.0,
+          "raw": "FULLY"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 4,
+          "supported_claims": 4,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    },
+    {
+      "id": "refund-and-returns",
+      "tags": [
+        "policy",
+        "multi-doc"
+      ],
+      "prediction": {
+        "answer": "You can get a full refund within 30 days of purchase, and a receipt is required.",
+        "contexts": [
+          "Customers may request a full refund within 30 days of purchase. A valid receipt is required for all returns.",
+          "Defective or damaged products are covered by the warranty and can be returned within 90 days of purchase for a replacement or refund."
+        ],
+        "doc_ids": [
+          "doc-policy-returns-v3",
+          "doc-policy-warranty-v2"
+        ],
+        "latency_ms": 0.011099999028374441,
+        "cost_usd": null
+      },
+      "metrics": {
+        "retrieval_recall_at_1": {
+          "score": 0.5
+        },
+        "retrieval_precision_at_1": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_3": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_3": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_5": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_5": {
+          "score": 1.0
+        },
+        "retrieval_recall_at_10": {
+          "score": 1.0
+        },
+        "retrieval_precision_at_10": {
+          "score": 1.0
+        },
+        "retrieval_mrr": {
+          "score": 1.0
+        },
+        "retrieval_hit_rate": {
+          "score": 1.0
+        },
+        "retrieval_ndcg_at_5": {
+          "score": 1.0
+        },
+        "relevance": {
+          "score": 1.0,
+          "raw": "FULLY"
+        },
+        "faithfulness": {
+          "score": 1.0,
+          "total_claims": 2,
+          "supported_claims": 2,
+          "unsupported_claims": []
+        },
+        "hallucination_rate": {
+          "score": 0.0
+        }
+      },
+      "skipped": []
+    }
+  ]
+}

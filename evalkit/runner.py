@@ -121,4 +121,10 @@ def _check_thresholds(summary: dict[str, float], thresholds: dict[str, float]) -
 
 
 def is_ceiling(metric: str) -> bool:
-    return metric in CEILING_METRICS or "hallucination" in metric
+    """True for metrics where lower is better (hallucination, latency, cost)."""
+    return (
+        metric in CEILING_METRICS
+        or "hallucination" in metric
+        or metric.startswith("avg_latency")
+        or metric.startswith("avg_cost")
+    )

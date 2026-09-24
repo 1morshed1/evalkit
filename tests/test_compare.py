@@ -36,6 +36,15 @@ def test_ceiling_regression():
     assert len(regressions(rows)) == 1
 
 
+def test_latency_is_ceiling():
+    # Latency going up is worse, even though the number increased.
+    rows = compare_results(
+        _result({"avg_latency_ms": 1000}), _result({"avg_latency_ms": 1500})
+    )
+    assert rows[0]["better"] is False
+    assert len(regressions(rows)) == 1
+
+
 def test_flat_is_not_regression():
     rows = compare_results(_result({"relevance": 0.9}), _result({"relevance": 0.9}))
     assert rows[0]["direction"] == "flat"
