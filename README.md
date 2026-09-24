@@ -245,6 +245,9 @@ uv run pytest        # tests use a fake judge — no LLM required
 uv run ruff check
 ```
 
+Adding a target, judge, or metric? The interfaces are one method each — see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## License
 
 MIT.

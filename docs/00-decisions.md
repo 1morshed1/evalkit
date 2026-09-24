@@ -164,6 +164,42 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 
 ---
 
+## D14 — How an agent suite runs (Phase 3, as built)
+
+**Question:** D4 fixed the `AgentTrace` schema and the OpenAI adapter, but not how a
+suite of traces actually flows through a runner that was built around
+`target.predict(question)`. There is no live system to call — the trace is the
+input. How do agent cases run without bolting a second code path onto the runner?
+
+**Decision:** Keep the one runner and express agent mode through the existing
+abstractions:
+- **A `target.type: agent`** selects a no-op **trace target** (`targets/trace.py`)
+  that returns an empty `Prediction`. The runner's `target → evaluators` flow is
+  unchanged; the trace and ground truth ride on the `TestCase`
+  (`agent_trace`, `expected_result`), which the `AgentEvaluator` reads directly.
+- **Evaluator selection is by target type** (`runner.default_evaluators`): `agent`
+  suites run the `AgentEvaluator`; everything else runs the RAG pair.
+- **The judge is optional.** Every agent metric is deterministic, so
+  `AgentEvaluator.needs_judge = False` and no judge is constructed — an agent suite
+  runs with zero API cost and no Ollama. A case may still opt into LLM-judged
+  completion with `expected_output`, used only if a judge happens to be configured.
+- **Error recovery is derived, not hand-authored.** `from_openai` inspects `tool`
+  messages: an error flips a step to `tool_error`, and a subsequent call to the same
+  tool becomes `retry_after_error`. So recovery is measurable straight from raw logs.
+
+**Why:** Reusing the `Target`/`Evaluator`/runner contracts (D3, D7) kept agent
+support additive — no branch in the hot loop, no second orchestration path. Offline
+determinism preserves the D5/D6 "free local demo, cheap CI" story for agents too.
+Deriving errors/retries from the trace means users paste logs rather than
+hand-labelling recovery.
+
+**What we rejected:** A separate `run_agent_suite` entry point (duplicates
+aggregation, gating, and reporting), and requiring a judge for task completion
+(would reintroduce the API-key barrier D5 removed). Full reference:
+[`04-agent-evaluation.md`](04-agent-evaluation.md).
+
+---
+
 ## Summary table
 
 | # | Topic | Decision |
@@ -181,3 +217,4 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 | D11 | Case study | Synthetic demo suite now; anonymized real data later |
 | D12 | Tooling | Python 3.11+, uv, pyproject, ruff, pytest |
 | D13 | License | MIT |
+| D14 | Agent mode | No-op trace target + evaluator-selection by type; judge optional; errors/retries derived from the trace |
