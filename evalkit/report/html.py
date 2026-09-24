@@ -103,14 +103,14 @@ def _build_rows(result: RunResult) -> list[dict[str, Any]]:
     for name in _ordered(result.summary):
         value = result.summary[name]
         limit = result.thresholds.get(name)
-        is_ratio = 0.0 <= value <= 1.0 and not name.startswith("avg_")
+        is_ratio = 0.0 <= value <= 1.0 and not name.startswith("avg_") and "cost" not in name
         status = "NA"
         if limit is not None:
             ok = value <= limit if is_ceiling(name) else value >= limit
             status = "PASS" if ok else "FAIL"
         if name.startswith("avg_latency"):
             display = f"{value:,.0f} ms"
-        elif name.startswith("avg_cost"):
+        elif "cost" in name:
             display = f"${value:.6f}"
         else:
             display = f"{value:.3f}"

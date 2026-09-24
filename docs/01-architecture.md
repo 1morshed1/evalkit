@@ -8,13 +8,14 @@ This document defines the module layout and the **data contracts** (schemas) tha
 
 ```
 evalkit/
-├── __init__.py            # public API: evaluate(), load_suite(), run()
-├── cli.py                 # `evalkit run|compare` (argparse or typer)
+├── __init__.py            # public API: load_suite(), run_suite(), AgentTrace
+├── cli.py                 # `evalkit run|compare|init`
 ├── config.py              # load/validate YAML suite -> Suite dataclass
 ├── targets/
 │   ├── base.py            # Target ABC -> returns Prediction
 │   ├── http.py            # POST endpoint adapter
-│   └── python.py          # import "module:fn" adapter
+│   ├── python.py          # import "module:fn" adapter
+│   └── trace.py           # no-op target for agent suites (trace is inline)
 ├── judges/
 │   ├── base.py            # Judge ABC: complete(prompt) -> str
 │   ├── ollama.py          # default
@@ -22,18 +23,22 @@ evalkit/
 │   ├── anthropic.py
 │   └── cache.py           # on-disk prompt->response cache
 ├── evaluators/
-│   ├── base.py            # Evaluator ABC: requires[], evaluate(case, pred)
+│   ├── base.py            # Evaluator ABC: requires[], evaluate(case, pred, judge)
 │   ├── retrieval.py       # recall@k, precision@k, MRR, nDCG, hit-rate
-│   ├── generation.py      # faithfulness, relevance, completeness, toxicity
-│   └── agent.py           # Phase 3
+│   ├── generation.py      # faithfulness, relevance, hallucination rate
+│   └── agent.py           # task completion, tool P/R, step efficiency, recovery, cost
 ├── runner.py              # orchestrates: target -> evaluators -> results
 ├── report/
 │   ├── console.py         # Rich table
 │   ├── json_report.py     # canonical result JSON (see below)
 │   ├── html.py            # self-contained Jinja2 report
 │   └── compare.py         # baseline vs candidate
-└── schemas.py             # all dataclasses in one place
+└── schemas.py             # all dataclasses + trace adapters in one place
 ```
+
+The `runner` chooses the evaluator set from `target.type`: an `agent` suite runs
+the `AgentEvaluator` (offline, trace-scoring); everything else runs the RAG
+retrieval + generation pair. See [`04-agent-evaluation.md`](04-agent-evaluation.md).
 
 **Design principle:** the three subsystems — **Target** (produces answers), **Judge** (scores with an LLM), **Evaluator** (computes a metric) — are each an abstract base class with one job. The **runner** wires them together and never hardcodes a concrete type. Swap Ollama for OpenAI, HTTP for Python, without touching the runner.
 
@@ -48,7 +53,7 @@ Matches the plan's format, with two clarifications from the decisions:
 ```yaml
 suite_name: "Customer Support RAG - v2.1"
 target:
-  type: python                       # http | python
+  type: python                       # http | python | agent
   import: "demo.rag:answer"          # for python
   # endpoint: "http://localhost:8000/api/query"   # for http
 
@@ -62,6 +67,9 @@ test_cases:
     expected_answer: "Full refund within 30 days with receipt."
     relevant_doc_ids: ["doc-policy-returns-v3"]   # optional
     tags: ["policy", "refund"]
+    # Agent suites (target.type: agent) add two per-case fields instead:
+    # agent_trace: {...}        # what the agent did (see Contract 4)
+    # expected_result: {...}    # agent ground truth (see 04-agent-evaluation.md)
 
 thresholds:
   retrieval_recall_at_5: 0.80
@@ -131,7 +139,7 @@ Written by `run`, read by `compare`, `html`, `console`. This is the contract use
 
 ---
 
-## Contract 4 — AgentTrace (Phase 3, defined now — D4)
+## Contract 4 — AgentTrace (D4)
 
 ```python
 @dataclass
@@ -150,13 +158,27 @@ class Step:
 @dataclass
 class AgentTrace:
     steps: list[Step]
-    final_output: str
+    final_output: str = ""
+
     @property
-    def tool_calls(self) -> list[ToolCall]:
-        return [s.tool_call for s in self.steps if s.tool_call]
+    def tool_calls(self) -> list[ToolCall]:   # every invocation, errors included
+        return [s.tool_call for s in self.steps if s.tool_call is not None]
+
+    @property
+    def llm_steps(self) -> list[Step]: ...     # reasoning steps (for efficiency)
+    @property
+    def total_cost_usd(self) -> float: ...     # sum over steps
+
+    @classmethod
+    def from_openai(cls, messages) -> "AgentTrace": ...   # Contract 4 adapter
+    @classmethod
+    def from_dict(cls, data) -> "AgentTrace": ...         # native or openai shape
 ```
 
-Adapters (e.g. `from_openai(messages)`) translate a framework's raw trace into this. The evaluator only ever sees `AgentTrace`.
+Adapters translate a framework's raw trace into this — the evaluator only ever
+sees `AgentTrace`. `from_openai` also detects tool errors and retries so error
+recovery is measurable from raw logs. Full field/metric reference:
+[`04-agent-evaluation.md`](04-agent-evaluation.md).
 
 ---
 
@@ -166,23 +188,32 @@ Adapters (e.g. `from_openai(messages)`) translate a framework's raw trace into t
 class Evaluator(ABC):
     name: str
     requires: list[str]              # e.g. ["relevant_doc_ids"]; runner skips if missing
+    needs_judge: bool = False        # runner only builds a judge if some evaluator needs one
 
     @abstractmethod
-    def evaluate(self, case: TestCase, pred: Prediction) -> MetricResult: ...
+    def evaluate(
+        self, case: TestCase, pred: Prediction, judge: Judge | None
+    ) -> dict[str, MetricResult]: ...   # one evaluator may emit several named metrics
 ```
 
-`requires` is how D7 (skip-and-record) is enforced generically: the runner checks each evaluator's `requires` against the case's available fields before calling it.
+`requires` is how D7 (skip-and-record) is enforced generically: the runner checks
+each evaluator's `requires` against the case's available fields before calling it
+(e.g. `agent` requires `agent_trace`). `needs_judge` lets an agent-only suite run
+with no judge constructed at all.
 
 ---
 
 ## Data flow (one test case)
 
 ```
+runner picks evaluators from target.type (RAG pair, or AgentEvaluator)
 TestCase.question
    -> Target.predict()            -> Prediction {answer, contexts, doc_ids}
+                                     (agent suites: a no-op trace target; the
+                                      trace + ground truth ride on the TestCase)
    -> for each Evaluator:
         if requires satisfied:
-            Evaluator.evaluate()   -> MetricResult   (may call Judge)
+            Evaluator.evaluate()   -> {name: MetricResult}   (may call Judge)
         else:
             record as skipped
    -> aggregate into case result

@@ -11,7 +11,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 from evalkit import __version__
-from evalkit.evaluators import Evaluator, GenerationEvaluator, RetrievalEvaluator
+from evalkit.evaluators import (
+    AgentEvaluator,
+    Evaluator,
+    GenerationEvaluator,
+    RetrievalEvaluator,
+)
 from evalkit.evaluators.base import Evaluator as EvaluatorBase
 from evalkit.judges import build_judge
 from evalkit.judges.base import Judge
@@ -30,7 +35,14 @@ from evalkit.targets.base import Target
 CEILING_METRICS = {"hallucination_rate"}
 
 
-def default_evaluators() -> list[Evaluator]:
+def default_evaluators(suite: Suite | None = None) -> list[Evaluator]:
+    """Pick the evaluator set for a suite based on its target type.
+
+    Agent suites (``target.type: agent``) score recorded traces, so they use the
+    AgentEvaluator; everything else runs the RAG retrieval + generation pair.
+    """
+    if suite is not None and suite.target.type in ("agent", "trace"):
+        return [AgentEvaluator()]
     return [RetrievalEvaluator(), GenerationEvaluator()]
 
 
@@ -42,7 +54,7 @@ def run_suite(
     judge: Judge | None = None,
     target: Target | None = None,
 ) -> RunResult:
-    evaluators = evaluators if evaluators is not None else default_evaluators()
+    evaluators = evaluators if evaluators is not None else default_evaluators(suite)
     target = target or build_target(suite.target)
     needs_judge = any(e.needs_judge for e in evaluators)
     if judge is None and needs_judge:
@@ -125,6 +137,6 @@ def is_ceiling(metric: str) -> bool:
     return (
         metric in CEILING_METRICS
         or "hallucination" in metric
+        or "cost" in metric
         or metric.startswith("avg_latency")
-        or metric.startswith("avg_cost")
     )

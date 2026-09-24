@@ -20,6 +20,12 @@ PREFERRED_ORDER = [
     "hallucination_rate",
     "avg_latency_ms",
     "avg_cost_usd",
+    "agent_task_completion",
+    "agent_tool_precision",
+    "agent_tool_recall",
+    "agent_step_efficiency",
+    "agent_error_recovery",
+    "agent_cost_usd",
 ]
 
 
@@ -63,6 +69,6 @@ def render_console(result: RunResult, console: Console | None = None) -> None:
 def _fmt(name: str, value: float) -> str:
     if name.startswith("avg_latency"):
         return f"{value:,.0f}"
-    if name.startswith("avg_cost"):
+    if "cost" in name:
         return f"${value:.6f}"
     return f"{value:.3f}"

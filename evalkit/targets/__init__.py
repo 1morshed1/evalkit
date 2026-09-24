@@ -6,6 +6,7 @@ from evalkit.schemas import TargetConfig
 from evalkit.targets.base import Target
 from evalkit.targets.http import HttpTarget
 from evalkit.targets.python import PythonTarget
+from evalkit.targets.trace import TraceTarget
 
 
 def build_target(config: TargetConfig) -> Target:
@@ -13,7 +14,9 @@ def build_target(config: TargetConfig) -> Target:
         return HttpTarget(config)
     if config.type == "python":
         return PythonTarget(config)
+    if config.type in ("agent", "trace"):
+        return TraceTarget()
     raise ValueError(f"Unknown target type: {config.type}")
 
 
-__all__ = ["Target", "HttpTarget", "PythonTarget", "build_target"]
+__all__ = ["Target", "HttpTarget", "PythonTarget", "TraceTarget", "build_target"]

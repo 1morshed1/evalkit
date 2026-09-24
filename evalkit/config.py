@@ -52,8 +52,8 @@ def parse_suite(raw: dict[str, Any]) -> Suite:
 
 def _parse_target(raw: dict[str, Any]) -> TargetConfig:
     ttype = raw.get("type")
-    if ttype not in ("http", "python"):
-        raise SuiteError("target.type must be 'http' or 'python'.")
+    if ttype not in ("http", "python", "agent", "trace"):
+        raise SuiteError("target.type must be 'http', 'python', or 'agent'.")
     tc = TargetConfig(
         type=ttype,
         endpoint=raw.get("endpoint"),

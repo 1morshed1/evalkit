@@ -35,7 +35,7 @@ evalkit run eval_suite.yaml --output results.json --html report.html
 |---|---|---|---|
 | **Retrieval** | recall@k, precision@k, MRR, nDCG@5, hit-rate | Yes (`relevant_doc_ids`) | No — pure math |
 | **Generation** | faithfulness, relevance, hallucination rate | No (reference-free) | Yes |
-| **Agent** *(Phase 3)* | task completion, tool precision/recall, step efficiency, error recovery, cost | Partial | Optional |
+| **Agent** | task completion, tool precision/recall, step efficiency, error recovery, cost | Partial | Optional |
 
 **Metric definitions:**
 
@@ -47,6 +47,11 @@ evalkit run eval_suite.yaml --output results.json --html report.html
 - **faithfulness** — fraction of the answer's atomic claims that are supported by the retrieved context. `1.0` means fully grounded.
 - **hallucination rate** — `1 − faithfulness`; the fraction of claims *not* supported by context.
 - **relevance** — how directly the answer addresses the question (LLM-judged, 0–1).
+- **agent task completion** — did the agent achieve the goal (explicit flag, a required substring, or LLM-judged).
+- **agent tool precision / recall** — of the tools the agent called, how many were expected (precision); of the expected tools, how many were called (recall). Arguments can be matched too.
+- **agent step efficiency** — `optimal_steps / actual_steps`, capped at 1.0 (rewards getting there in fewer LLM calls).
+- **agent error recovery** — of the tool calls that errored, what fraction the agent retried and recovered from.
+- **agent cost (USD)** — total cost summed across the trace's steps.
 
 **How faithfulness works:** the answer is decomposed into atomic claims by an LLM, and each claim is checked against the retrieved context. Unsupported claims are reported *by name*, so a low score is debuggable — you see the exact hallucinated sentence.
 
@@ -150,6 +155,76 @@ To see comparison mode, run it twice — once with the strong retriever (`demo.r
 
 ---
 
+## Agent evaluation
+
+For tool-using agents, EvalKit scores the **execution trace** — not just the final
+answer, but *how* the agent got there. Set `target.type: agent` and attach a trace
+to each case; nothing live is called, and no judge or API key is needed (the judge is
+used only if a case sets `expected_output`).
+
+Traces come in two shapes. Paste an **OpenAI** message list straight from your logs:
+
+```yaml
+target:
+  type: agent
+
+test_cases:
+  - id: "order-status"
+    question: "What's the status of order 5591?"
+    expected_result:
+      success_contains: "shipped"
+      expected_tool_calls:
+        - {name: "get_order", arguments: {order_id: "5591"}}
+      optimal_step_count: 2
+    agent_trace:
+      format: openai            # a list of OpenAI chat-completion messages
+      messages:
+        - {role: user, content: "What's the status of order 5591?"}
+        - role: assistant
+          cost_usd: 0.001
+          tool_calls:
+            - {id: c1, function: {name: get_order, arguments: '{"order_id": "5591"}'}}
+        - {role: tool, tool_call_id: c1, content: "Order 5591: shipped."}
+        - {role: assistant, content: "Order 5591 has shipped.", cost_usd: 0.001}
+```
+
+…or use the **native** form (`{steps: [...], final_output: "..."}`) if you don't
+have OpenAI logs. `AgentTrace.from_openai(messages)` is also importable directly.
+A tool call that errors and is retried is detected automatically and feeds the
+error-recovery metric. Run it like any other suite:
+
+```bash
+evalkit run demo/agent_suite.yaml --html report.html
+```
+
+```
+          EvalKit — Support Agent — reliability
+┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━┓
+┃ Metric                ┃     Value ┃ Threshold ┃ Status ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━┩
+│ agent_task_completion │     0.667 │       0.8 │  FAIL  │
+│ agent_tool_precision  │     0.500 │           │   —    │
+│ agent_tool_recall     │     0.667 │       0.8 │  FAIL  │
+│ agent_step_efficiency │     0.778 │           │   —    │
+│ agent_error_recovery  │     1.000 │       0.9 │  PASS  │
+│ agent_cost_usd        │ $0.002600 │     0.005 │  PASS  │
+└───────────────────────┴───────────┴───────────┴────────┘
+```
+
+(The demo suite deliberately includes a failing case so the gate has something to
+catch — one agent picks the wrong tool and never finds the answer.)
+
+---
+
+## Scaffold a suite
+
+```bash
+evalkit init eval_suite.yaml              # a RAG starter
+evalkit init agent_suite.yaml --kind agent   # an agent starter
+```
+
+---
+
 ## Design & decisions
 
 This project is documented as it was built. If you want the *why* behind every choice:
@@ -157,6 +232,8 @@ This project is documented as it was built. If you want the *why* behind every c
 - [`docs/00-decisions.md`](docs/00-decisions.md) — every decision, with rationale and rejected alternatives.
 - [`docs/01-architecture.md`](docs/01-architecture.md) — module layout and the data contracts.
 - [`docs/02-roadmap.md`](docs/02-roadmap.md) — the phased build plan.
+- [`docs/03-case-study.md`](docs/03-case-study.md) — a reproducible before/after on the demo RAG.
+- [`docs/04-agent-evaluation.md`](docs/04-agent-evaluation.md) — trace formats, adapters, and every agent metric.
 
 ---
 
@@ -167,6 +244,9 @@ uv venv && uv pip install -e ".[dev]"
 uv run pytest        # tests use a fake judge — no LLM required
 uv run ruff check
 ```
+
+Adding a target, judge, or metric? The interfaces are one method each — see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
