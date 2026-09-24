@@ -232,6 +232,8 @@ This project is documented as it was built. If you want the *why* behind every c
 - [`docs/00-decisions.md`](docs/00-decisions.md) — every decision, with rationale and rejected alternatives.
 - [`docs/01-architecture.md`](docs/01-architecture.md) — module layout and the data contracts.
 - [`docs/02-roadmap.md`](docs/02-roadmap.md) — the phased build plan.
+- [`docs/03-case-study.md`](docs/03-case-study.md) — a reproducible before/after on the demo RAG.
+- [`docs/04-agent-evaluation.md`](docs/04-agent-evaluation.md) — trace formats, adapters, and every agent metric.
 
 ---
 
