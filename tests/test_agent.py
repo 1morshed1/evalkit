@@ -33,9 +33,7 @@ def test_from_openai_parses_calls_args_and_final_output():
             "role": "assistant",
             "content": None,
             "cost_usd": 0.002,
-            "tool_calls": [
-                {"id": "c1", "function": {"name": "get", "arguments": '{"id": "5"}'}}
-            ],
+            "tool_calls": [{"id": "c1", "function": {"name": "get", "arguments": '{"id": "5"}'}}],
         },
         {"role": "tool", "tool_call_id": "c1", "content": "ok"},
         {"role": "assistant", "content": "the answer", "cost_usd": 0.003},
@@ -54,9 +52,15 @@ def test_from_openai_parses_calls_args_and_final_output():
 def test_from_openai_marks_error_then_retry():
     messages = [
         {"role": "user", "content": "status?"},
-        {"role": "assistant", "tool_calls": [{"id": "a", "function": {"name": "fetch", "arguments": "{}"}}]},
+        {
+            "role": "assistant",
+            "tool_calls": [{"id": "a", "function": {"name": "fetch", "arguments": "{}"}}],
+        },
         {"role": "tool", "tool_call_id": "a", "content": "Error: timeout"},
-        {"role": "assistant", "tool_calls": [{"id": "b", "function": {"name": "fetch", "arguments": "{}"}}]},
+        {
+            "role": "assistant",
+            "tool_calls": [{"id": "b", "function": {"name": "fetch", "arguments": "{}"}}],
+        },
         {"role": "tool", "tool_call_id": "b", "content": "shipped"},
         {"role": "assistant", "content": "it shipped"},
     ]
@@ -70,9 +74,7 @@ def test_from_openai_marks_error_then_retry():
 
 
 def _case(agent_trace, expected_result):
-    return TestCase(
-        id="t", question="q", agent_trace=agent_trace, expected_result=expected_result
-    )
+    return TestCase(id="t", question="q", agent_trace=agent_trace, expected_result=expected_result)
 
 
 def _eval(case):
@@ -89,12 +91,16 @@ def test_tool_precision_recall_and_arg_matching():
     }
     expected = {"expected_tool_calls": [{"name": "search", "arguments": {"q": "cats"}}]}
     m = _eval(_case(trace, expected))
-    assert m["agent_tool_recall"].score == 1.0       # the one expected call was made
-    assert m["agent_tool_precision"].score == 0.5    # 1 of 2 actual calls was expected
+    assert m["agent_tool_recall"].score == 1.0  # the one expected call was made
+    assert m["agent_tool_precision"].score == 0.5  # 1 of 2 actual calls was expected
 
 
 def test_tool_arg_mismatch_fails_match():
-    trace = {"steps": [{"type": "tool_call", "tool_call": {"name": "search", "arguments": {"q": "dogs"}}}]}
+    trace = {
+        "steps": [
+            {"type": "tool_call", "tool_call": {"name": "search", "arguments": {"q": "dogs"}}}
+        ]
+    }
     expected = {"expected_tool_calls": [{"name": "search", "arguments": {"q": "cats"}}]}
     m = _eval(_case(trace, expected))
     assert m["agent_tool_recall"].score == 0.0
@@ -106,7 +112,7 @@ def test_step_efficiency_capped_at_one():
         "steps": [{"type": "llm"}, {"type": "llm"}, {"type": "llm"}, {"type": "llm"}],
     }
     m = _eval(_case(trace, {"optimal_step_count": 2}))
-    assert m["agent_step_efficiency"].score == 0.5    # 2 optimal / 4 actual
+    assert m["agent_step_efficiency"].score == 0.5  # 2 optimal / 4 actual
     # An over-achieving trace never scores above 1.0.
     m2 = _eval(_case({"steps": [{"type": "llm"}]}, {"optimal_step_count": 3}))
     assert m2["agent_step_efficiency"].score == 1.0
@@ -121,7 +127,7 @@ def test_error_recovery_rate():
         ]
     }
     m = _eval(_case(trace, {}))
-    assert m["agent_error_recovery"].score == 0.5     # 1 recovery / 2 errors
+    assert m["agent_error_recovery"].score == 0.5  # 1 recovery / 2 errors
     # No errors -> perfect by convention.
     m2 = _eval(_case({"steps": [{"type": "llm"}]}, {}))
     assert m2["agent_error_recovery"].score == 1.0
@@ -166,7 +172,9 @@ AGENT_SUITE = {
                     {
                         "role": "assistant",
                         "cost_usd": 0.001,
-                        "tool_calls": [{"id": "1", "function": {"name": "search_kb", "arguments": "{}"}}],
+                        "tool_calls": [
+                            {"id": "1", "function": {"name": "search_kb", "arguments": "{}"}}
+                        ],
                     },
                     {"role": "tool", "tool_call_id": "1", "content": "90-day window"},
                     {"role": "assistant", "content": "You have 90 days.", "cost_usd": 0.001},

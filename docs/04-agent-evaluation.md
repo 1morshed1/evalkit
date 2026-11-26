@@ -77,6 +77,7 @@ flattened. It's also importable directly:
 
 ```python
 from evalkit import AgentTrace
+
 trace = AgentTrace.from_openai(messages)
 ```
 

@@ -46,7 +46,7 @@ retrieval + generation pair. See [`04-agent-evaluation.md`](04-agent-evaluation.
 
 ## Contract 1 — Test suite (YAML input)
 
-Matches the plan's format, with two clarifications from the decisions:
+The format, with two clarifications from the decisions:
 - `target` picks an adapter (`http` or `python`).
 - `relevant_doc_ids` is **optional** per case (D7).
 
@@ -88,7 +88,7 @@ Every target adapter returns this, regardless of transport:
 @dataclass
 class Prediction:
     answer: str
-    contexts: list[str]              # retrieved passages (RAG); [] for plain LLM
+    contexts: list[str]  # retrieved passages (RAG); [] for plain LLM
     doc_ids: list[str] = field(default_factory=list)  # retrieved ids, if known
     latency_ms: float | None = None
     cost_usd: float | None = None
@@ -135,7 +135,7 @@ Written by `run`, read by `compare`, `html`, `console`. This is the contract use
 }
 ```
 
-**Why per-case detail is kept:** the summary is for the CV table; the per-case block (especially `unsupported_claims`) is what lets you *debug* a bad score — it names the exact hallucinated sentence.
+**Why per-case detail is kept:** the summary is for dashboards and the comparison table; the per-case block (especially `unsupported_claims`) is what lets you *debug* a bad score — it names the exact hallucinated sentence.
 
 ---
 
@@ -149,11 +149,13 @@ class ToolCall:
     result: str | None = None
     error: str | None = None
 
+
 @dataclass
 class Step:
-    type: str                # "llm" | "tool_call" | "tool_error" | "retry_after_error"
+    type: str  # "llm" | "tool_call" | "tool_error" | "retry_after_error"
     cost_usd: float = 0.0
     tool_call: ToolCall | None = None
+
 
 @dataclass
 class AgentTrace:
@@ -161,18 +163,18 @@ class AgentTrace:
     final_output: str = ""
 
     @property
-    def tool_calls(self) -> list[ToolCall]:   # every invocation, errors included
+    def tool_calls(self) -> list[ToolCall]:  # every invocation, errors included
         return [s.tool_call for s in self.steps if s.tool_call is not None]
 
     @property
-    def llm_steps(self) -> list[Step]: ...     # reasoning steps (for efficiency)
+    def llm_steps(self) -> list[Step]: ...  # reasoning steps (for efficiency)
     @property
-    def total_cost_usd(self) -> float: ...     # sum over steps
+    def total_cost_usd(self) -> float: ...  # sum over steps
 
     @classmethod
-    def from_openai(cls, messages) -> "AgentTrace": ...   # Contract 4 adapter
+    def from_openai(cls, messages) -> "AgentTrace": ...  # Contract 4 adapter
     @classmethod
-    def from_dict(cls, data) -> "AgentTrace": ...         # native or openai shape
+    def from_dict(cls, data) -> "AgentTrace": ...  # native or openai shape
 ```
 
 Adapters translate a framework's raw trace into this — the evaluator only ever
@@ -187,13 +189,13 @@ recovery is measurable from raw logs. Full field/metric reference:
 ```python
 class Evaluator(ABC):
     name: str
-    requires: list[str]              # e.g. ["relevant_doc_ids"]; runner skips if missing
-    needs_judge: bool = False        # runner only builds a judge if some evaluator needs one
+    requires: list[str]  # e.g. ["relevant_doc_ids"]; runner skips if missing
+    needs_judge: bool = False  # runner only builds a judge if some evaluator needs one
 
     @abstractmethod
     def evaluate(
         self, case: TestCase, pred: Prediction, judge: Judge | None
-    ) -> dict[str, MetricResult]: ...   # one evaluator may emit several named metrics
+    ) -> dict[str, MetricResult]: ...  # one evaluator may emit several named metrics
 ```
 
 `requires` is how D7 (skip-and-record) is enforced generically: the runner checks

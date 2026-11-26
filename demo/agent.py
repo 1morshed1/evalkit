@@ -20,11 +20,18 @@ REFUND_LOOKUP: list[dict[str, Any]] = [
             {
                 "id": "call_1",
                 "type": "function",
-                "function": {"name": "search_kb", "arguments": '{"query": "return window defective"}'},
+                "function": {
+                    "name": "search_kb",
+                    "arguments": '{"query": "return window defective"}',
+                },
             }
         ],
     },
-    {"role": "tool", "tool_call_id": "call_1", "content": "Defective products: 90-day return window."},
+    {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Defective products: 90-day return window.",
+    },
     {
         "role": "assistant",
         "content": "You have 90 days to return a defective product.",
@@ -61,7 +68,11 @@ ORDER_STATUS_WITH_RETRY: list[dict[str, Any]] = [
         ],
     },
     {"role": "tool", "tool_call_id": "call_2", "content": "Order 5591: shipped, arriving Tuesday."},
-    {"role": "assistant", "content": "Order 5591 has shipped and arrives Tuesday.", "cost_usd": 0.0012},
+    {
+        "role": "assistant",
+        "content": "Order 5591 has shipped and arrives Tuesday.",
+        "cost_usd": 0.0012,
+    },
 ]
 
 # A failing run: wrong/extra tool, wanders for many steps, wrong answer.

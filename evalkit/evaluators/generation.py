@@ -82,15 +82,14 @@ class GenerationEvaluator(Evaluator):
                 break
         return MetricResult("relevance", score, {"raw": raw.strip()[:60]})
 
-    def _faithfulness(
-        self, answer: str, contexts: list[str], judge: Judge
-    ) -> MetricResult:
+    def _faithfulness(self, answer: str, contexts: list[str], judge: Judge) -> MetricResult:
         claims = self._extract_claims(answer, judge)
         if not claims:
             # No verifiable claims -> vacuously faithful.
             return MetricResult(
-                "faithfulness", 1.0, {"total_claims": 0, "supported_claims": 0,
-                                       "unsupported_claims": []}
+                "faithfulness",
+                1.0,
+                {"total_claims": 0, "supported_claims": 0, "unsupported_claims": []},
             )
         context_text = "\n---\n".join(contexts)
         supported = 0

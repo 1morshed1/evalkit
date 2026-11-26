@@ -34,7 +34,7 @@ class FakeJudge(Judge):
             claim_line = ""
             for line in prompt.splitlines():
                 if line.startswith("CLAIM:"):
-                    claim_line = line[len("CLAIM:"):].strip()
+                    claim_line = line[len("CLAIM:") :].strip()
                     break
             return "no" if claim_line in self._unsupported else "yes"
         return ""

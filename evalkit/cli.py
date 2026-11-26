@@ -42,7 +42,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Exit 1 if any metric regressed vs --baseline.",
     )
-    p_run.add_argument("--baseline", default=None, help="Baseline result JSON for regression check.")
+    p_run.add_argument(
+        "--baseline", default=None, help="Baseline result JSON for regression check."
+    )
 
     p_init = sub.add_parser("init", help="Write a starter eval_suite.yaml.")
     p_init.add_argument(

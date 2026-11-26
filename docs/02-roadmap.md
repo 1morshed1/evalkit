@@ -46,7 +46,7 @@ Goal: `evalkit run eval_suite.yaml` produces a console table + result JSON on a 
 
 ## Phase 2 — Reports, comparison, CI gate
 
-Goal: the outputs that go on the CV.
+Goal: the outputs that prove the framework works.
 
 - ✅ `report/html.py` — self-contained Jinja2 report, inline CSS, inline SVG charts (D8)
 - ✅ `report/compare.py` + `evalkit compare --baseline --candidate` → the change table (the killer feature)
@@ -73,7 +73,7 @@ Goal: evaluate tool-using agents.
 
 ## Phase 4 — Polish & publish
 
-- ✅ Case study section: evaluate a real RAG (anonymized Shothik AI data if available, else the synthetic suite) showing a measured improvement
+- ✅ Case study section: evaluate a RAG (the synthetic demo suite) showing a measured improvement
 - ✅ `openai.py` + `anthropic.py` judge backends (parity with Ollama)
 - ☐ Package metadata, `README` badges, publish to PyPI as `evalkit-py`
 - ✅ Optional: `evalkit init` scaffolds a starter suite
@@ -83,7 +83,7 @@ Goal: evaluate tool-using agents.
 ## Critical path
 
 ```
-Phase 0 schemas ──> Phase 1 runner ──> Phase 2 compare/CI ──> CV-ready
+Phase 0 schemas ──> Phase 1 runner ──> Phase 2 compare/CI ──> release-ready
                                    └──> Phase 3 agent (parallel-ish, independent)
 ```
 
@@ -94,5 +94,6 @@ Everything hinges on the **schemas (Phase 0)** and the **result JSON (Contract 3
 ## Remaining
 
 The framework is feature-complete for local and CI use. The only open item is
-publishing the package to PyPI as `evalkit-py` (needs registry credentials);
+publishing the package to PyPI (the name `evalkit-py` has since been taken, so the
+distribution needs a new name first — see `docs/00` D2);
 until then, install from source with `uv pip install -e ".[dev]"`.

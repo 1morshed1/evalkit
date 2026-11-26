@@ -1,14 +1,20 @@
 # EvalKit
 
+[![Tests](https://github.com/1morshed1/evalkit/actions/workflows/tests.yml/badge.svg)](https://github.com/1morshed1/evalkit/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Evaluate LLM applications — retrieval quality, generation quality, and agent reliability — locally, reproducibly, and in CI.**
 
 Every team building with LLMs has the same problem: they can't tell if their system is getting better or worse. They tweak a chunking strategy or swap a model, users complain or don't, and nobody has the numbers. EvalKit gives you the numbers.
 
 ```bash
-pip install evalkit-py
+pip install "git+https://github.com/1morshed1/evalkit.git"
+pip install openai      # optional: OpenAI judge
+pip install anthropic   # optional: Anthropic judge
 ```
 
-> Import name is `evalkit`; the PyPI distribution is `evalkit-py`.
+> Not yet published to PyPI — install from GitHub. The import name is `evalkit`.
 
 ---
 
@@ -18,7 +24,7 @@ pip install evalkit-py
 from evalkit import load_suite, run_suite
 
 result = run_suite(load_suite("eval_suite.yaml"))
-print(result.summary)          # {'faithfulness': 0.91, 'retrieval_recall_at_5': 0.85, ...}
+print(result.summary)  # {'faithfulness': 0.91, 'retrieval_recall_at_5': 0.85, ...}
 ```
 
 Or from the terminal:
@@ -95,10 +101,10 @@ The LLM-as-judge (used for faithfulness and relevance) is pluggable. The default
 
 ```yaml
 judge: { provider: openai, model: gpt-4o-mini }      # needs OPENAI_API_KEY
-judge: { provider: anthropic, model: claude-3-5-haiku-latest }  # needs ANTHROPIC_API_KEY
+judge: { provider: anthropic, model: claude-haiku-5-5 }  # needs ANTHROPIC_API_KEY
 ```
 
-Every judge call runs at `temperature=0` and is **cached on disk** (keyed by prompt + model). Re-running an unchanged suite makes **zero** LLM calls — fast and cheap.
+Ollama and OpenAI judge calls run at `temperature=0` (the Anthropic API no longer accepts sampling parameters, so that backend omits it). Every judge call is **cached on disk** (keyed by prompt + model), so re-running an unchanged suite makes **zero** LLM calls and returns identical scores.
 
 ---
 
@@ -110,19 +116,24 @@ When you change your chunking strategy or swap models, compare two runs:
 evalkit compare --baseline results-v1.json --candidate results-v2.json --output comparison.html
 ```
 
+Real output from the bundled case study (top-1 retriever with an ungrounded
+sentence vs. top-3 retriever; judge = `llama3.2` via Ollama):
+
 ```
-                    EvalKit — Baseline vs Candidate
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┓
-┃ Metric                  ┃ Baseline ┃ Candidate ┃ Change    ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━┩
-│ retrieval_recall_at_5   │ 0.720    │ 0.850     │ +18.1% ✅ │
-│ faithfulness            │ 0.810    │ 0.910     │ +12.3% ✅ │
-│ relevance               │ 0.880    │ 0.920     │ +4.5%  ✅ │
-│ hallucination_rate      │ 0.120    │ 0.040     │ -66.7% ✅ │
-└─────────────────────────┴──────────┴───────────┴───────────┘
+                 EvalKit — Baseline vs Candidate
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Metric                    ┃ Baseline ┃ Candidate ┃ Change     ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ retrieval_recall_at_5     │ 0.917    │ 1.000     │ +9.1%   ✅ │
+│ retrieval_ndcg_at_5       │ 0.935    │ 1.000     │ +6.9%   ✅ │
+│ faithfulness              │ 0.745    │ 1.000     │ +34.3%  ✅ │
+│ relevance                 │ 0.500    │ 0.750     │ +50.0%  ✅ │
+│ hallucination_rate        │ 0.256    │ 0.000     │ -100.0% ✅ │
+│ avg_latency_ms            │ ~0       │ ~0        │ +25.0%  ❌ │
+└───────────────────────────┴──────────┴───────────┴────────────┘
 ```
 
-Comparison is **ceiling-aware**: a drop in `hallucination_rate` is scored as an improvement, not a regression.
+Comparison is **ceiling-aware**: a drop in `hallucination_rate` is scored as an improvement, not a regression. The baseline's hallucinated claim is named in the per-case report — see [`examples/comparison.html`](examples/comparison.html) and the full write-up in [`docs/03-case-study.md`](docs/03-case-study.md).
 
 ---
 
@@ -231,7 +242,7 @@ This project is documented as it was built. If you want the *why* behind every c
 
 - [`docs/00-decisions.md`](docs/00-decisions.md) — every decision, with rationale and rejected alternatives.
 - [`docs/01-architecture.md`](docs/01-architecture.md) — module layout and the data contracts.
-- [`docs/02-roadmap.md`](docs/02-roadmap.md) — the phased build plan.
+- [`docs/02-roadmap.md`](docs/02-roadmap.md) — the phased build roadmap.
 - [`docs/03-case-study.md`](docs/03-case-study.md) — a reproducible before/after on the demo RAG.
 - [`docs/04-agent-evaluation.md`](docs/04-agent-evaluation.md) — trace formats, adapters, and every agent metric.
 
@@ -250,4 +261,4 @@ Adding a target, judge, or metric? The interfaces are one method each — see
 
 ## License
 
-MIT.
+[MIT](LICENSE)

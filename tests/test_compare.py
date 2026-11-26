@@ -42,9 +42,7 @@ def test_ceiling_regression():
 
 def test_latency_is_ceiling():
     # Latency going up is worse, even though the number increased.
-    rows = compare_results(
-        _result({"avg_latency_ms": 1000}), _result({"avg_latency_ms": 1500})
-    )
+    rows = compare_results(_result({"avg_latency_ms": 1000}), _result({"avg_latency_ms": 1500}))
     assert rows[0]["better"] is False
     assert len(regressions(rows)) == 1
 

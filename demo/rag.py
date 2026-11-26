@@ -31,12 +31,20 @@ CORPUS: list[dict] = [
     },
     {
         "id": "doc-policy-warranty-v2",
-        "keywords": {"defective", "broken", "damaged", "warranty", "replacement",
-                     "faulty", "return", "returns", "90"},
+        "keywords": {
+            "defective",
+            "broken",
+            "damaged",
+            "warranty",
+            "replacement",
+            "faulty",
+            "return",
+            "returns",
+            "90",
+        },
         "text": "Defective or damaged products are covered by the warranty and can "
         "be returned within 90 days of purchase for a replacement or refund.",
-        "answer": "Defective products can be returned within 90 days under the "
-        "warranty policy.",
+        "answer": "Defective products can be returned within 90 days under the warranty policy.",
     },
     {
         "id": "doc-pricing-2024",
@@ -59,15 +67,43 @@ CORPUS: list[dict] = [
         "keywords": {"support", "contact", "help", "hours", "available", "chat", "email"},
         "text": "Customer support is available Monday to Friday, 9am to 6pm, via "
         "email and live chat.",
-        "answer": "Support is available Monday to Friday, 9am to 6pm, via email and "
-        "live chat.",
+        "answer": "Support is available Monday to Friday, 9am to 6pm, via email and live chat.",
     },
 ]
 
 _STOP = {
-    "the", "a", "an", "is", "are", "do", "does", "you", "your", "i", "can", "get",
-    "how", "much", "what", "of", "for", "to", "after", "if", "and", "my", "when",
-    "on", "about", "me", "tell", "long", "take", "will", "it", "in",
+    "the",
+    "a",
+    "an",
+    "is",
+    "are",
+    "do",
+    "does",
+    "you",
+    "your",
+    "i",
+    "can",
+    "get",
+    "how",
+    "much",
+    "what",
+    "of",
+    "for",
+    "to",
+    "after",
+    "if",
+    "and",
+    "my",
+    "when",
+    "on",
+    "about",
+    "me",
+    "tell",
+    "long",
+    "take",
+    "will",
+    "it",
+    "in",
 }
 
 

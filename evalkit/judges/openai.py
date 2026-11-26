@@ -1,4 +1,4 @@
-"""OpenAI judge backend (optional; requires `pip install evalkit-py[openai]`)."""
+"""OpenAI judge backend (optional; requires the `openai` package)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ class OpenAIJudge(Judge):
             from openai import OpenAI
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
-                "OpenAI backend requires the openai package: pip install 'evalkit-py[openai]'"
+                "OpenAI backend requires the openai package: pip install openai"
             ) from exc
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:

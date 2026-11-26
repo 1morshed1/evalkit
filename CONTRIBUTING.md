@@ -37,6 +37,7 @@ Subclass `Target` and return a normalized `Prediction`. The base class's
 from evalkit.targets.base import Target
 from evalkit.schemas import Prediction
 
+
 class MyTarget(Target):
     def predict(self, question: str) -> Prediction:
         ...  # call your system
@@ -54,11 +55,12 @@ One method. Set `provider`/`model` so the on-disk cache key is stable.
 # evalkit/judges/mybackend.py
 from evalkit.judges.base import Judge
 
+
 class MyJudge(Judge):
     def __init__(self, config):
         self.provider, self.model = "mybackend", config.model
-    def complete(self, prompt: str) -> str:
-        ...  # return the model's text, temperature=0
+
+    def complete(self, prompt: str) -> str: ...  # return the model's text, temperature=0
 ```
 
 Register it in `judges/__init__.py::build_judge`. The cache and concurrency are
@@ -74,6 +76,7 @@ emit several named metrics.
 # evalkit/evaluators/mymetric.py
 from evalkit.evaluators.base import Evaluator
 from evalkit.schemas import MetricResult, Prediction, TestCase
+
 
 class MyEvaluator(Evaluator):
     name = "mymetric"

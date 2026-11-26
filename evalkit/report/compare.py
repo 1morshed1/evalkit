@@ -13,9 +13,7 @@ from evalkit.runner import is_ceiling
 EPS = 1e-9
 
 
-def compare_results(
-    baseline: dict[str, Any], candidate: dict[str, Any]
-) -> list[dict[str, Any]]:
+def compare_results(baseline: dict[str, Any], candidate: dict[str, Any]) -> list[dict[str, Any]]:
     """Build one row per metric present in either summary."""
     b_sum = baseline.get("summary", {})
     c_sum = candidate.get("summary", {})
@@ -61,9 +59,7 @@ def _fmt(metric: str, value: float | None) -> str:
     return f"{value:.3f}"
 
 
-def render_comparison_console(
-    rows: list[dict[str, Any]], console: Console | None = None
-) -> None:
+def render_comparison_console(rows: list[dict[str, Any]], console: Console | None = None) -> None:
     console = console or Console()
     table = Table(title="EvalKit — Baseline vs Candidate")
     table.add_column("Metric", style="cyan", no_wrap=True)

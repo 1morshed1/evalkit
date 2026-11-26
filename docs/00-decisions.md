@@ -1,6 +1,6 @@
 # EvalKit — Decision Record
 
-This document answers every open question from the plan review with a **recommended default** and, more importantly, **the reasoning behind it**. It is written to be read top-to-bottom as a learning resource: each decision explains the trade-off, not just the verdict.
+This document records every significant design decision with **the chosen default** and, more importantly, **the reasoning behind it**. Each decision explains the trade-off, not just the verdict.
 
 > Format: each decision states the **Question**, the **Decision**, the **Why**, and (where useful) **What we rejected**.
 
@@ -12,7 +12,7 @@ This document answers every open question from the plan review with a **recommen
 
 **Decision:** Ship in phases. **Phase 1 = Retrieval + Generation.** **Agent evaluator = Phase 3.**
 
-**Why:** Retrieval and generation cover the RAG use case, which is the plan's headline ("Customer Support RAG"), the case study, and the comparison table that goes on the CV. They also share the same simple data shape (question → answer → contexts). Agent evaluation needs an `AgentTrace` (tool calls, per-step cost, retries) that has *no standard format* — it drags in adapter work for LangChain / OpenAI / etc. Doing it last means the core framework is already proven when we tackle the messy part.
+**Why:** Retrieval and generation cover the RAG use case, which is the headline use case ("Customer Support RAG"), the case study, and the comparison table. They also share the same simple data shape (question → answer → contexts). Agent evaluation needs an `AgentTrace` (tool calls, per-step cost, retries) that has *no standard format* — it drags in adapter work for LangChain / OpenAI / etc. Doing it last means the core framework is already proven when we tackle the messy part.
 
 **What we rejected:** "Build everything then test." Greenfield frameworks that try to be complete before they are *usable* tend to die before the first real evaluation runs. We want a runnable `evalkit run` by end of Phase 1.
 
@@ -24,17 +24,19 @@ This document answers every open question from the plan review with a **recommen
 
 **Decision:** **Import name stays `evalkit`.** **Distribution (PyPI) name = `evalkit-py`.** Fallback single clean brand = `evallens` (free as both).
 
-**Why:** Checked PyPI live: `evalkit` returns HTTP 200 → already taken, cannot publish under it. But the *import* name (what you type in `import evalkit`) does **not** have to match the PyPI distribution name. Keeping `import evalkit` preserves the repo name, the CV narrative, and every code example. We only rename the thing users type after `pip install`.
+**Why:** Checked PyPI live: `evalkit` returns HTTP 200 → already taken, cannot publish under it. But the *import* name (what you type in `import evalkit`) does **not** have to match the PyPI distribution name. Keeping `import evalkit` preserves the repo name and every code example. We only rename the thing users type after `pip install`.
 
 Availability checked (404 = free): `evalkit-py`, `evallens`, `probeval`, `evalbench-kit`, `gradekit`, `llmeval-kit`.
 
 **What we rejected:** Renaming the whole project to force a matching name. Not worth rewriting every doc; the dist-name/import-name split is a normal Python pattern (e.g. `beautifulsoup4` → `import bs4`).
 
+**Update (2026-11):** `evalkit-py` has since been registered on PyPI by an unrelated project, so EvalKit is **not** published to PyPI yet and installs from GitHub (`pip install "git+https://github.com/1morshed1/evalkit.git"`). Before a PyPI release, re-check the fallback names above and rename the distribution in `pyproject.toml`; the import name stays `evalkit`.
+
 ---
 
 ## D3 — How EvalKit talks to the target system (the most important interface)
 
-**Question:** The plan shows two contradictory target modes — a YAML `endpoint: http://...` (HTTP) and `evalkit.evaluate(questions, ...)` (Python import). Which is primary?
+**Question:** The original spec showed two contradictory target modes — a YAML `endpoint: http://...` (HTTP) and `evalkit.evaluate(questions, ...)` (Python import). Which is primary?
 
 **Decision:** Support **both**, behind a `Target` abstraction. Two built-in adapters:
 - `type: http` + `endpoint:` → POST each question, read JSON response.
@@ -124,7 +126,7 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 
 ## D10 — What counts as a "regression" for CI exit code
 
-**Question:** `--fail-on-regression`: is a regression *below an absolute threshold*, or *below a baseline*? The plan shows both.
+**Question:** `--fail-on-regression`: is a regression *below an absolute threshold*, or *below a baseline*? Both readings are reasonable.
 
 **Decision:** Support **both**, independently:
 - `--fail-below-thresholds` → exit 1 if any metric is under its `thresholds:` value (absolute gate; needs no baseline).
@@ -136,9 +138,9 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 
 ## D11 — Case study dataset
 
-**Question:** The README case study evaluates your own Shothik AI RAG (anonymized). Do we have exportable labeled data, or synthesize?
+**Question:** Should the case study use real production data (anonymized) or a synthetic suite?
 
-**Decision:** **Open question for you (see Queries below).** Default plan: build a small **synthetic but realistic** demo suite (10–20 cases) so the framework is provable end-to-end without your private data; swap in anonymized real data if/when available.
+**Decision:** A small **synthetic but realistic** demo suite (10–20 cases), so the framework is provable end-to-end with no private data. Anonymized real data can be swapped in later.
 
 **Why:** The framework must be demonstrable regardless. A synthetic suite unblocks all development and gives the README its comparison table today. Real anonymized data makes the case study stronger later but is not on the critical path.
 
@@ -150,7 +152,7 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 
 **Decision:** **Python 3.11+** (dev on 3.12, which is installed). **`uv`** for env + dependency management (installed). **`pyproject.toml`** (PEP 621), **`ruff`** for lint/format, **`pytest`** for tests.
 
-**Why:** 3.11 gives modern type syntax (`list[str]`, `X | None`) without shims and is widely available. `uv` is fast and already on this machine. `ruff` replaces black+flake8+isort with one fast tool — less config to explain, good for a learning project.
+**Why:** 3.11 gives modern type syntax (`list[str]`, `X | None`) without shims and is widely available. `uv` is fast and already on this machine. `ruff` replaces black+flake8+isort with one fast tool — less config to explain, easy to adopt.
 
 ---
 
@@ -160,7 +162,7 @@ output: { "answer": str, "contexts": [str, ...], "doc_ids": [str, ...]? }
 
 **Decision:** **MIT.**
 
-**Why:** Maximally permissive → maximum adoption, which is the point of a portfolio tool ("engineers use my tool"). No copyleft friction for anyone evaluating it at work.
+**Why:** Maximally permissive → maximum adoption, which is the point of a developer tool. No copyleft friction for anyone evaluating it at work.
 
 ---
 
